@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Document Editor | PDF Tools | File Conversion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Ultimate Document Editor</h1>
+            <p>Merge, convert, edit, and transform documents with our all-in-one tool. PDFs, Word, Excel, PowerPoint, images, and more!</p>
+            <button class="cta-button" id="startMergingBtn">
+                <i class="fas fa-file-pdf"></i> Start Now
+            </button>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="section" id="main-tools">
+        <div class="section-title">
+            <h2>Document Tools</h2>
+            <p>Select a tool to start working with your documents</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="pdf-merger" id="pdfMergerTab">
+                <i class="fas fa-object-group"></i> PDF Merger
+            </button>
+            <button class="tab-btn" data-tab="document-converter" id="documentConverterTab">
+                <i class="fas fa-exchange-alt"></i> Document Converter
+            </button>
+            <button class="tab-btn" data-tab="youtube-downloader" id="youtubeDownloaderTab">
+                <i class="fab fa-youtube"></i> YouTube Downloader
+            </button>
+        </div>
+        
+        <!-- PDF Merger Tool -->
+        <div class="tool-container active-tool" id="pdf-merger">
+            <div class="api-status" id="pdfApiStatus"></div>
+            
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-file-pdf"></i>
+                <h3>Upload PDF Files</h3>
+                <p>Drag & drop your PDF files here or click to browse</p>
+                <input type="file" id="fileInput" accept=".pdf" multiple>
+            </div>
+            
+            <div class="file-list">
+                <h3><i class="fas fa-list"></i> Files to Merge</h3>
+                <ul class="file-items" id="fileList"></ul>
+            </div>
+            
+            <div class="controls">
+                <button class="action-btn" id="mergeBtn" disabled>
+                    <i class="fas fa-object-group"></i> Merge PDFs
+                </button>
+                <a href="#" class="download-btn hidden" id="downloadBtn">
+                    <i class="fas fa-download"></i> Download Merged PDF
+                </a>
+            </div>
+        </div>
+        
+        <!-- Document Converter Tool -->
+        <div class="tool-container" id="document-converter">
+            <div class="api-status" id="converterApiStatus"></div>
+            
+            <div class="upload-area" id="converterUploadArea">
+                <i class="fas fa-file-upload"></i>
+                <h3>Upload Files to Convert</h3>
+                <p>Drag & drop your files here or click to browse</p>
+                <input type="file" id="converterFileInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.txt">
+            </div>
+            
+            <div class="file-list">
+                <h3><i class="fas fa-list"></i> Files to Convert</h3>
+                <ul class="file-items" id="converterFileList"></ul>
+            </div>
+            
+            <div class="conversion-options">
+                <h3>Convert To:</h3>
+                <div class="conversion-option selected" data-format="pdf">
+                    <i class="fas fa-file-pdf"></i>
+                    <h4>PDF</h4>
+                    <p>Portable Document Format</p>
+                </div>
+                <div class="conversion-option" data-format="docx">
+                    <i class="fas fa-file-word"></i>
+                    <h4>Word</h4>
+                    <p>Microsoft Word Document</p>
+                </div>
+                <div class="conversion-option" data-format="jpg">
+                    <i class="fas fa-file-image"></i>
+                    <h4>JPG</h4>
+                    <p>JPEG Image</p>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="action-btn" id="convertBtn" disabled>
+                    <i class="fas fa-exchange-alt"></i> Convert Files
+                </button>
+                <a href="#" class="download-btn hidden" id="downloadConvertedBtn">
+                    <i class="fas fa-download"></i> Download Converted Files
+                </a>
+            </div>
+        </div>
+        
+        <!-- YouTube Downloader Tool -->
+        <div class="tool-container" id="youtube-downloader">
+            <div class="api-status" id="youtubeApiStatus"></div>
+            
+            <div class="url-input-container">
+                <input type="text" class="url-input" id="youtubeUrl" placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)">
+                <button class="action-btn" id="fetchInfoBtn">
+                    <i class="fas fa-search"></i> Fetch Info
+                </button>
+            </div>
+            
+            <div class="youtube-info" id="youtubeInfo" style="display: none;">
+                <h3 id="youtubeTitle"></h3>
+                <p id="youtubeAuthor"></p>
+                <img id="youtubeThumbnail" src="" alt="Video thumbnail">
+            </div>
+            
+            <div class="format-options" id="formatOptions" style="display: none;">
+                <h3>Available Formats:</h3>
+            </div>
+            
+            <div class="controls">
+                <button class="action-btn" id="downloadYoutubeBtn" disabled>
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <a href="#" class="download-btn hidden" id="downloadYoutubeFileBtn">
+                    <i class="fas fa-download"></i> Download File
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="#main-tools">Tools</a>
+            <a href="#privacy">Privacy</a>
+            <a href="#contact">Contact</a>
+        </div>
+        <p class="copyright">© 2023 Ultimate Document Editor. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript Files -->
+    <script src="js/app.js"></script>
+    <script src="js/pdf-merger.js"></script>
+    <script src="js/converter.js"></script>
+    <script src="js/youtube-dl.js"></script>
+</body>
+</html>
