@@ -14,6 +14,14 @@ app.use(express.json());
 // Configure file uploads
 const upload = multer({ dest: 'uploads/' });
 
+// Serve static files (including index.html)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Serve landing page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // --- YouTube Downloader ---
 app.get('/youtube/download', async (req, res) => {
     const { url, format } = req.query;
