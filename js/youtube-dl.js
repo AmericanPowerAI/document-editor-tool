@@ -22,6 +22,61 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        const originalText = fetchInfoBtn.innerHTML;
+        fetchInfoBtn.disabled = true;
+        fetchInfoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+        
+        try {
+            const response = await fetch(`https://document-editor-tool.onrender.com/youtube/info?url=${encodeURIComponent(url)}`);
+            
+            if (!response.ok) {
+                throw new Error('Failed to fetch video info: ' + (await response.text()));
+            }
+            
+            videoInfo = await response.json();
+            
+            youtubeTitle.textContent = videoInfo.title;
+            youtubeAuthor.textContent = `By: ${videoInfo.author}`;
+            youtubeThumbnail.src = videoInfo.thumbnail;
+            youtubeInfo.style.display = 'block';
+            
+            displayFormatOptions(videoInfo.formats);
+            
+            showApiStatus('youtubeApiStatus', 'Video info fetched successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error fetching video info:', error);
+            showApiStatus('youtubeApiStatus', error.message || 'Invalid YouTube URL', 'error');
+            youtubeInfo.style.display = 'none';
+            formatOptions.style.display = 'none';
+        } finally {
+            fetchInfoBtn.disabled = false;
+            fetchInfoBtn.innerHTML = originalText;
+        }
+document.addEventListener('DOMContentLoaded', function() {
+    const youtubeUrl = document.getElementById('youtubeUrl');
+    const fetchInfoBtn = document.getElementById('fetchInfoBtn');
+    const formatOptions = document.getElementById('formatOptions');
+    const downloadYoutubeBtn = document.getElementById('downloadYoutubeBtn');
+    const downloadYoutubeFileBtn = document.getElementById('downloadYoutubeFileBtn');
+    const youtubeInfo = document.getElementById('youtubeInfo');
+    const youtubeTitle = document.getElementById('youtubeTitle');
+    const youtubeAuthor = document.getElementById('youtubeAuthor');
+    const youtubeThumbnail = document.getElementById('youtubeThumbnail');
+    
+    let videoInfo = null;
+    let selectedFormatId = null;
+    
+    // Fetch video info
+    fetchInfoBtn.addEventListener('click', fetchVideoInfo);
+    
+    async function fetchVideoInfo() {
+        const url = youtubeUrl.value.trim();
+        if (!url) {
+            showApiStatus('youtubeApiStatus', 'Please enter a YouTube URL', 'error');
+            return;
+        }
+        
         try {
             fetchInfoBtn.disabled = true;
             fetchInfoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
