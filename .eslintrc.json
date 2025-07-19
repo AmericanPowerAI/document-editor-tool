@@ -1,0 +1,14 @@
+{
+  "extends": ["airbnb-base", "plugin:security/recommended"],
+  "plugins": ["security"],
+  "rules": {
+    "no-console": "off",
+    "import/no-extraneous-dependencies": ["error", {"devDependencies": true}],
+    "consistent-return": "warn",
+    "security/detect-non-literal-fs-filename": "warn"
+  },
+  "env": {
+    "node": true,
+    "browser": true
+  }
+}
