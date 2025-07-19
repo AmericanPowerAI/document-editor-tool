@@ -595,3 +595,49 @@ footer {
         flex-direction: column;
     }
 }
+
+/* Loading Spinner Animation */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Disabled Button Styles */
+.action-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.action-btn:disabled .fa-spinner {
+    color: inherit;
+}
+
+/* Status Messages */
+.api-status {
+    padding: 12px;
+    margin: 15px 0;
+    border-radius: 5px;
+    display: none;
+    font-size: 0.9rem;
+}
+
+.api-status.visible {
+    display: block;
+}
+
+.api-status.success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 1px solid var(--success);
+    color: var(--success);
+}
+
+.api-status.error {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
