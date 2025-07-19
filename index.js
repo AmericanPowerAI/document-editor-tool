@@ -22,7 +22,32 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// --- YouTube Downloader ---
+// --- YouTube Downloader Endpoints ---
+app.get('/youtube/info', async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).send("URL required!");
+
+    try {
+        const info = await ytdl.getInfo(url);
+        res.json({
+            title: info.videoDetails.title,
+            author: info.videoDetails.author.name,
+            thumbnail: info.videoDetails.thumbnails[0].url,
+            formats: info.formats.map(f => ({
+                itag: f.itag,
+                container: f.container,
+                qualityLabel: f.qualityLabel,
+                audioBitrate: f.audioBitrate,
+                hasVideo: f.hasVideo,
+                hasAudio: f.hasAudio
+            })),
+            url: info.videoDetails.video_url
+        });
+    } catch (error) {
+        res.status(500).send("Info fetch failed: " + error.message);
+    }
+});
+
 app.get('/youtube/download', async (req, res) => {
     const { url, format } = req.query;
     if (!url) return res.status(400).send("URL required!");
