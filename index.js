@@ -19,40 +19,50 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 }
 });
 
-// ======================
-// 🎥 UNIVERSAL DOWNLOADER
-// ======================
+// YouTube Info Endpoint
+app.get('/youtube/info', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: "YouTube URL required" });
+
+  try {
+    const info = await ytdl.getInfo(url, {
+      requestOptions: { headers: { 'User-Agent': 'Mozilla/5.0' } }
+    });
+    
+    res.json({
+      title: info.videoDetails.title,
+      author: info.videoDetails.author.name,
+      thumbnail: info.videoDetails.thumbnails.pop().url,
+      url: info.videoDetails.video_url
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Universal Download Endpoint
 app.get('/download', async (req, res) => {
   const { url, type } = req.query;
-  
+  if (!url) return res.status(400).json({ error: "URL required" });
+
   try {
-    // YouTube handling
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
       const options = {
         quality: type === 'mp3' ? 'highestaudio' : 'highest',
-        filter: type === 'mp3' ? 'audioonly' : 'audioandvideo',
-        requestOptions: { headers: { 'User-Agent': 'Mozilla/5.0' } }
+        filter: type === 'mp3' ? 'audioonly' : 'audioandvideo'
       };
-      
       const filename = type === 'mp3' ? 'audio.mp3' : 'video.mp4';
       res.header('Content-Disposition', `attachment; filename="${filename}"`);
       ytdl(url, options).pipe(res);
-    } 
-    // Other platforms
-    else {
-      res.status(400).json({ 
-        error: "Platform coming soon", 
-        supported: "Currently only YouTube works" 
-      });
+    } else {
+      res.status(400).json({ error: "Only YouTube supported currently" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// ==================
-// 📄 DOCUMENT TOOLS
-// ==================
+// PDF Tools (Keep Existing)
 app.post('/pdf/merge', upload.array('files'), async (req, res) => {
   try {
     const mergedPdf = await PDFDocument.create();
