@@ -7,74 +7,111 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-app.use(cors());
+
+// Middleware
+app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 
-// Configure file uploads
-const upload = multer({ 
+// File upload configuration
+const upload = multer({
   dest: 'uploads/',
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 25 * 1024 * 1024 } // 25MB limit
 });
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Landing page
+// Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// YouTube Endpoints
+// Enhanced YouTube Info Endpoint
 app.get('/youtube/info', async (req, res) => {
-  let { url } = req.query;
-  if (!url) return res.status(400).json({ error: "URL required" });
+  const { url } = req.query;
+
+  if (!url) {
+    return res.status(400).json({ error: "YouTube URL is required" });
+  }
 
   try {
-    if (!url.startsWith('http')) url = 'https://' + url;
-    const info = await ytdl.getInfo(url);
+    const options = {
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9'
+        }
+      }
+    };
+
+    const info = await ytdl.getInfo(url, options);
+    
     res.json({
       title: info.videoDetails.title,
       author: info.videoDetails.author.name,
-      thumbnail: info.videoDetails.thumbnails[0].url,
-      formats: info.formats.map(f => ({
-        itag: f.itag,
-        container: f.container,
-        qualityLabel: f.qualityLabel,
-        audioBitrate: f.audioBitrate,
-        hasVideo: f.hasVideo,
-        hasAudio: f.hasAudio
+      thumbnail: info.videoDetails.thumbnails[info.videoDetails.thumbnails.length - 1].url,
+      formats: info.formats.map(format => ({
+        itag: format.itag,
+        container: format.container,
+        qualityLabel: format.qualityLabel || 'N/A',
+        audioBitrate: format.audioBitrate || 0,
+        hasVideo: format.hasVideo,
+        hasAudio: format.hasAudio
       })),
       url: info.videoDetails.video_url
     });
+
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch video info" });
+    console.error('YouTube API Error:', error.message);
+    res.status(500).json({ 
+      error: "Failed to fetch video info",
+      details: error.message.includes("This is a private video") 
+        ? "Private video (sign in to access)"
+        : error.message
+    });
   }
 });
 
+// YouTube Download Endpoint
 app.get('/youtube/download', async (req, res) => {
   const { url, format } = req.query;
-  if (!url) return res.status(400).json({ error: "URL required" });
+
+  if (!url) {
+    return res.status(400).json({ error: "URL is required" });
+  }
 
   try {
-    const filename = format === 'mp3' ? 'audio.mp3' : 'video.mp4';
-    res.header('Content-Disposition', `attachment; filename="${filename}"`);
-    ytdl(url, {
+    const options = {
       quality: format === 'mp3' ? 'highestaudio' : 'highest',
-      filter: format === 'mp3' ? 'audioonly' : 'audioandvideo'
-    }).pipe(res);
+      filter: format === 'mp3' ? 'audioonly' : 'audioandvideo',
+      requestOptions: {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      }
+    };
+
+    const filename = format === 'mp3' ? 'audio.mp3' : 'video.mp4';
+    
+    res.header('Content-Disposition', `attachment; filename="${filename}"`);
+    ytdl(url, options).pipe(res);
+
   } catch (error) {
-    res.status(500).json({ error: "Download failed" });
+    console.error('Download Error:', error);
+    res.status(500).json({ error: "Download failed", details: error.message });
   }
 });
 
-// PDF Merger
+// PDF Merger Endpoint
 app.post('/pdf/merge', upload.array('files'), async (req, res) => {
   try {
-    const pdfs = req.files;
-    if (!pdfs || pdfs.length < 2) throw new Error("Upload 2+ PDFs");
+    if (!req.files || req.files.length < 2) {
+      throw new Error("Please upload at least 2 PDF files");
+    }
 
     const mergedPdf = await PDFDocument.create();
-    for (const file of pdfs) {
+    
+    for (const file of req.files) {
       const pdfBytes = fs.readFileSync(file.path);
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
@@ -83,33 +120,45 @@ app.post('/pdf/merge', upload.array('files'), async (req, res) => {
     }
 
     const mergedBytes = await mergedPdf.save();
+    
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="merged.pdf"');
     res.send(mergedBytes);
+
   } catch (error) {
-    res.status(500).json({ error: "Merge failed: " + error.message });
+    console.error('Merge Error:', error);
+    res.status(500).json({ error: "Merge failed", details: error.message });
   }
 });
 
-// Document Converter
+// Document Converter Endpoint
 app.post('/convert', upload.single('file'), async (req, res) => {
   try {
-    const file = req.file;
-    if (!file) throw new Error("Upload a file");
+    if (!req.file) {
+      throw new Error("Please upload a file");
+    }
 
+    // Note: This is a placeholder - implement actual conversion logic
     const fakePdf = await PDFDocument.create();
     const page = fakePdf.addPage([600, 800]);
-    page.drawText(`Converted from: ${file.originalname}`, { x: 50, y: 750 });
+    page.drawText(`Converted from: ${req.file.originalname}`, { x: 50, y: 750 });
 
     const pdfBytes = await fakePdf.save();
+    
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="converted.pdf"`);
+    res.setHeader('Content-Disposition', 'attachment; filename="converted.pdf"');
     res.send(pdfBytes);
-    fs.unlinkSync(file.path);
+    
+    fs.unlinkSync(req.file.path);
+
   } catch (error) {
-    res.status(500).json({ error: "Conversion failed: " + error.message });
+    console.error('Conversion Error:', error);
+    res.status(500).json({ error: "Conversion failed", details: error.message });
   }
 });
 
+// Start Server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
